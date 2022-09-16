@@ -23,7 +23,7 @@
 
 ![6](https://user-images.githubusercontent.com/72768554/190596622-50b8ce2a-526e-411d-9c18-5f5ad0830044.jpg)
 
-7. Блок с закладками
+7. Набор закладок
 
 ![7](https://user-images.githubusercontent.com/72768554/190596631-04fe0f1f-abff-405e-a4af-d6089e78ead3.jpg)
 
