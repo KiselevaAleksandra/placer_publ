@@ -1,1 +1,1 @@
-# Лабораторная работа "Intellegent Placer"
+# placer_publ
