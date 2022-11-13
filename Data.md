@@ -2,7 +2,7 @@
 
 1. Общий фон
 
-![1](https://user-images.githubusercontent.com/72768554/193116034-5f0e52f1-0af9-428b-b32e-989d94d06ebc.jpg)
+![1](https://user-images.githubusercontent.com/72768554/201522785-181836c9-1dd0-4f34-ae7f-3a9f97067998.jpg)
 
 2. Замазка
 
