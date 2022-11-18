@@ -23,7 +23,9 @@ def pol2cart(theta, rho):
     return x, y
 
 
-# производим поворот предмета
+# делаем список контуров повернутого предмета при его нахождении в начале координат,
+# для того чтобы не производить вычисления каждый раз при повороте предмета, 
+# а брать данные из таблицы
 def make_rotate_center_list(approx):
     global angle_base
 
@@ -78,7 +80,7 @@ def rotate_center(num, img, approx_obj_list, approx_poly):
         approx_obj_list[num] = globalvar.rotate_center_table[num][i] + [px, py]
         approx_obj_list[num] = approx_obj_list[num].astype(np.int32)
 
-        # обновляем крайние точки предмета
+        # проверяем, удалось ли разместить предмет
         if check_place(num, img, approx_obj_list, approx_poly):
             return 1, approx_obj_list[num]
 
