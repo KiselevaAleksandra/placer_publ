@@ -1,218 +1,80 @@
 import cv2
-
-# Функция возвращает путь, по которому надо сохранить файл с контуром для предметов
-def takePath(num):
-    numstr = str(num)
-    numstrpng = numstr + '_contour.png'
-    return numstrpng
-
-
-# Функция возвращает путь, по которому надо сохранить файл с контуром для многоугольника
-def takePathPolygon(num):
-    numstr = str(num)
-    numstrpng = 'polygon_' + numstr + '_contour.png'
-    return numstrpng
+import matplotlib.pyplot as plt
+from detectcontours import *
+from placer import *
+from rotate import *
+import globalvar
+import time
+from PIL import Image
 
 
-# Функция находит контур некоторых предметов на заранее сделанных фотографиях
-# Клубок ниток и расческа
-def find_object_contour_1(img, num):
-    # Получение чб изображение
-    imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    gray = cv2.cvtColor(imgrgb, cv2.COLOR_RGB2GRAY)
-
-    # Бинаризация изображения
-    _, binary = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY)
-    # plt.imshow(binary, cmap="gray")
-    # plt.show()
-
-    # Получение границ объекта
-    canny_img = cv2.Canny(binary, 50, 100)
-    # cv2.imshow('Edges Detected',canny_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # Устранение шумов морфологическими операциями
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-    opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
-    # cv2.imshow('Edges Detected',opening)
-    # cv2.imshow('Edges Detected',closing)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # Получение контуров объектов
-    contours, hierarchy = cv2.findContours(opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # Нанесение нужного контура на изображение для проверки
-    img = cv2.drawContours(img, contours, 0, (0, 255, 0), 2)
-    # plt.imshow(img)
-    # plt.show()
-
-    # Сохранение изображения с нанесенными контурами в файл
-    cv2.imwrite(takePath(num), img)
-    # Подсчет площади полученного контура
-    area = cv2.contourArea(contours[0])
-    return area
+def save_res(num):
+    num_str = str(num)
+    path = 'output/' + num_str + '_res.jpg'
+    return path
 
 
-# Функция находит контур некоторых объектов на заранее сделанных фотографиях
-# Для всех остальных объектов
-def find_object_contour_2(img, num):
-    imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    gray = cv2.cvtColor(imgrgb, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(gray, 190, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (80, 80))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img = cv2.drawContours(img, contours, 2, (0, 255, 0), 2)
-    cv2.imwrite(takePath(num), img)
-    area = cv2.contourArea(contours[2])
-    return area
+def main_func(num, img):
+    # получаем список точек контуров
+    poly_area, approx_poly_list = find_polygon_contour(num, img)
+    count_obj, sum_area, approx_obj_list = find_objects_contour(num, img)
+
+    # обрабатываем ошибки
+    if poly_area == 0:
+        print('     FALSE: нет многоугольников')
+        print('NO')
+        return
+
+    if count_obj == 0:
+        print('     FALSE: нет предметов')
+        print('NO')
+        return
+
+    if poly_area < sum_area:
+        print('NO')
+        return
+
+    # распологаем контуры предметов в порядке уменьшения площади
+    approx_obj_list = sorted(approx_obj_list, reverse=True, key=cv2.contourArea)
+
+    # получаем крайние точки поля
+    top, bottom, left, right = extreme_points(approx_poly_list[0])
+    globalvar.p_top = top[1]
+    globalvar.p_bottom = bottom[1]
+    globalvar.p_left = left[0]
+    globalvar.p_right = right[0]
+
+    # составляем таблицу значений контуров при повороте предметов в начале коорднат, чтобы не рассчитывать их каждый раз заново
+    globalvar.rotate_center_table.clear()
+    for i in range(0, count_obj):
+        globalvar.rotate_center_list.clear()
+        make_rotate_center_list(approx_obj_list[i])
+        globalvar.rotate_center_table.append(np.array(globalvar.rotate_center_list))
+
+    # с помощью рекурсивной функции размещаем предметы
+    res = recursive_placer(0, img, count_obj, approx_obj_list, approx_poly_list)
+
+    #cv2.imwrite(save_res(num), img)
 
 
-# Функция находит контур некоторых объектов на заранее сделанных фотографиях
-# Игрушка
-def find_object_contour_3(img, num):
-    imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    gray = cv2.cvtColor(imgrgb, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(gray, 76, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
-    contours, hierarchy = cv2.findContours(opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img = cv2.drawContours(img, contours, 0, (0, 255, 0), 2)
-    cv2.imwrite(takePath(num), img)
-    area = cv2.contourArea(contours[0])
-    return area
-
-
-# Функция находит контур некоторых объектов на заранее сделанных фотографиях
-# Замазка
-def find_object_contour_4(img, num):
-    imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    gray = cv2.cvtColor(imgrgb, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-    opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
-    contours, hierarchy = cv2.findContours(opening, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img = cv2.drawContours(img, contours, 1, (0, 255, 0), 2)
-    cv2.imwrite(takePath(num), img)
-    area = cv2.contourArea(contours[1])
-    return area
-
-
-# Функция находит контур некоторых объектов на заранее сделанных фотографиях
-# Транспортир
-def find_object_contour_5(img, num):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, binary = cv2.threshold(gray, 190, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img = cv2.drawContours(img, contours, 3, (0, 255, 0), 2)
-    cv2.imwrite(takePath(num), img)
-    area = cv2.contourArea(contours[3])
-    return area
-
-
-# Функция находит контур некоторых предметов на заранее сделанных фотографиях
-# Блок закладок
-def find_object_contour_6(img, num):
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(gray, 185, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
-    contours, hierarchy = cv2.findContours(canny_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img = cv2.drawContours(img, contours, 3, (0, 255, 0), 2)
-    cv2.imwrite(takePath(num), img)
-    area = cv2.contourArea(contours[3])
-    return area
-
-
-# Функция вызывает нужные функции для предметов
-def init(img, num):
-    if num == 1:
-        find_object_contour_3(img, num)
-    elif num == 2 or num == 3:
-        find_object_contour_1(img, num)
-    elif num == 4:
-        find_object_contour_4(img, num)
-    elif num == 10:
-        find_object_contour_5(img, num)
-    elif num == 9:
-        find_object_contour_6(img, num)
+    if res == 1:
+        plt.imshow(img)
+        plt.show()
+        print("YES")
+        return
     else:
-        find_object_contour_2(img, num)
+        print("NO")
+        return
 
 
-# Функция обрабатывает заранее сделанные .jpg изображения с предметами
-def load_objects():
-    # Цикл по всем фотографиям
-    for num in range(1, 11):
-        # Переводим .jpg изображения в .png
-        numstr = str(num)
-        namejpg = numstr + '.jpg'
-        namepng = numstr + '.png'
-        image = cv2.imread(namejpg)
-        cv2.imwrite(namepng, image)
-        # Вызов функции init
-        image_png = cv2.imread(namepng)
-        init(image_png, num)
+# Функция обрабатывает .input изображения с основного датасета
+def check_image():
+    for num in range(2, 22):
+        time_start = time.time()
+        path = 'input/polygon_' + str(num) + '.jpg'
+        img = cv2.imread(path)
+        main_func(num, img)
+        print(num, 'Time:', "{0:.2f}".format(time.time() - time_start))
 
 
-# Функция находит контур многоугольника на фотографиях с основного датасета
-def find_polygon_contour(img, num):
-    imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    gray = cv2.cvtColor(imgrgb, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY)
-    canny_img = cv2.Canny(binary, 50, 100)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-    closing = cv2.morphologyEx(canny_img, cv2.MORPH_CLOSE, kernel)
-    contours, hierarchy = cv2.findContours(closing, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Определение номера контура с максимальной площадью (то есть белого листа)
-    maxArea = 0
-    maxAreaNum = 0
-    for k in range(hierarchy.shape[1]):
-        area = cv2.contourArea(contours[k])
-        if area > maxArea:
-            maxArea = area
-            maxAreaNum = k
-
-    # Получение контура многоугольника
-    # Цикл по всем найденным внури белого листа контурам
-    for k in range(maxAreaNum, hierarchy.shape[1]):
-        # Подсчет площади очередного контура
-        area = cv2.contourArea(contours[k])
-        # ищем первый контур внутри белого листа
-        if area < maxArea - 1:
-            img = cv2.drawContours(img, contours, k, (0, 255, 0), 2)
-            # plt.imshow(img)
-            # plt.show()
-            # print(area)
-            cv2.imwrite(takePathPolygon(num), img)
-            return area
-    return 0
-
-
-# Функция обрабатывает .jpg изображения с основного датасета
-def load_polygon():
-    for num in range(1, 24):
-        numstr = str(num)
-        namejpg = 'polygon_' + numstr + '.jpg'
-        namepng = 'polygon_' + numstr + '.png'
-        image = cv2.imread(namejpg)
-        cv2.imwrite(namepng, image)
-        image_png = cv2.imread(namepng)
-        find_polygon_contour(image_png, num)
-
-
-load_objects()
-load_polygon()
