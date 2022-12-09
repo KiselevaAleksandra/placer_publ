@@ -7,16 +7,14 @@ from intelligent_placer_lib.extremepoints import extreme_points
 
 
 def compress_image(img):  # сжатие
-    new_height = int(img.shape[0] * 40/ 100)
-    new_width = int(img.shape[1] * 40 / 100)
+    new_height = int(img.shape[0] * 50/ 100)
+    new_width = int(img.shape[1] * 50 / 100)
     compressed_image = cv2.resize(img, (new_width, new_height), cv2.INTER_AREA)
     return compressed_image
 
 
 def check_image(img):
     img = compress_image(img)
-
-
 
     # получаем список точек контуров
     poly_area, approx_poly_list = find_polygon_contour(img)
