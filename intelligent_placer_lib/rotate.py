@@ -73,7 +73,7 @@ def rotate_center(num, img, approx_obj_list, approx_poly, rotate_center_table):
         approx_obj_list[num] = rotate_center_table[num][i] + [px, py]
         approx_obj_list[num] = approx_obj_list[num].astype(np.int32)
 
-        # обновляем крайние точки предмета
+        # проверяем удалось ли разместить
         if check_place(num, img, approx_obj_list, approx_poly):
             return 1, approx_obj_list[num]
 
