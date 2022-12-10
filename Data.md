@@ -47,12 +47,6 @@
 
 # Набор входных данных вместе с ожидаемыми результатами
 
-## Большой многоугольник и все предметы
-
-![1](https://user-images.githubusercontent.com/72768554/197415802-d33605b5-cb68-4fdd-85a5-3777dc5bc973.jpg)
-
-Результат: No
-
 ## Предмет помещается в многоугольник свободно
 
 ![2](https://user-images.githubusercontent.com/72768554/197415807-4b18ae67-241c-4c24-8bab-6984fbe6b225.jpg)
@@ -112,6 +106,38 @@
 ![17](https://user-images.githubusercontent.com/72768554/197415866-c7f59565-99f5-4421-a349-29404fc67c3c.jpg)
 
 ![18](https://user-images.githubusercontent.com/72768554/197415869-85615b86-5648-4ae4-aa5b-45ed4e390693.jpg)
+
+Результат: No
+
+## Несколько предметов помещаются в невыпуклый многоугольник
+
+![polygon_24](https://user-images.githubusercontent.com/72768554/206430327-18a9cab3-b473-4bce-86a5-4215f889463b.jpg)
+
+![polygon_26](https://user-images.githubusercontent.com/72768554/206430457-44b5c462-4d4d-4b8e-85da-7abb1b82fae8.jpg)
+
+![polygon_28](https://user-images.githubusercontent.com/72768554/206430507-dcde039c-1f6c-46fa-8820-8a65155a9bf7.jpg)
+
+![polygon_29](https://user-images.githubusercontent.com/72768554/206430520-f58733ff-c809-4d40-83c9-5ce75e419846.jpg)
+
+![polygon_30](https://user-images.githubusercontent.com/72768554/206430558-dfee1470-c682-4be2-985e-4d1bc8a65d27.jpg)
+
+![polygon_31](https://user-images.githubusercontent.com/72768554/206430576-55425d58-42ce-4e2c-b3f9-2c504904b671.jpg)
+
+![polygon_32](https://user-images.githubusercontent.com/72768554/206430591-f5aaeda2-3c39-40ad-b5f4-0f41a9b5b5c7.jpg)
+
+Результат: Yes
+
+## Несколько предметов не помещаются в невыпуклый многоугольник
+
+![polygon_25](https://user-images.githubusercontent.com/72768554/206430744-ee3a09d7-1f21-4578-aa12-ff9cccecd96f.jpg)
+
+![polygon_27](https://user-images.githubusercontent.com/72768554/206430762-3d659834-e3ac-4359-8267-5e11c18d6eca.jpg)
+
+![polygon_33](https://user-images.githubusercontent.com/72768554/206430779-e8f3261c-1877-47aa-8447-01dd1622b6c9.jpg)
+
+![polygon_34](https://user-images.githubusercontent.com/72768554/206430799-6eb6bbd5-9ef8-4bab-8bad-7d4742634d6a.jpg)
+
+![polygon_35](https://user-images.githubusercontent.com/72768554/206430809-6d1b81b0-8afa-4e94-9d6b-8ff3d4692c3d.jpg)
 
 Результат: No
 
